@@ -8,6 +8,7 @@ import { initializeAuthListener } from '../services/auth';
 
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
+import WelcomeScreen from '../screens/WelcomeScreen';
 
 import HomeScreen from '../screens/HomeScreen';
 import SubscriptionsScreen from '../screens/SubscriptionsScreen';
@@ -29,7 +30,8 @@ const MainTabs = () => (
 );
 
 const AuthStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
+  <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Welcome">
+    <Stack.Screen name="Welcome" component={WelcomeScreen} />
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="Register" component={RegisterScreen} />
   </Stack.Navigator>
@@ -47,8 +49,9 @@ export const AppNavigator = () => {
 
   if (isLoading) {
     return (
-      <View className="flex-1 justify-center items-center bg-white">
-        <ActivityIndicator size="large" color="#2563eb" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc' }}>
+        <ActivityIndicator size="large" color="#3b82f6" />
+        <Text style={{ marginTop: 15, color: '#64748b', fontWeight: '600' }}>LifeOps Hazırlanıyor...</Text>
       </View>
     );
   }
