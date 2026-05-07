@@ -14,6 +14,8 @@ export default function LoginScreen({ navigation }: any) {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
+    /*
+    // Auth şimdilik devre dışı bırakıldı
     if (!email || !password) {
       Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
       return;
@@ -22,10 +24,25 @@ export default function LoginScreen({ navigation }: any) {
     try {
       await signIn(email, password);
     } catch (err: any) {
-      Alert.alert('Giriş Hatası', err.message || 'Bir sorun oluştu.');
+      let message = 'Giriş yapılamadı.';
+      const errMessage = err.message || '';
+
+      if (errMessage.includes('Invalid login credentials')) {
+        // Kullanıcıya hem email hem şifre kontrolü yapması gerektiğini belirten net bir mesaj
+        message = 'Girdiğiniz bilgiler sistemimizdeki kayıtlarla eşleşmiyor. Lütfen e-posta adresinizi ve şifrenizi kontrol edin.';
+      } else if (errMessage.includes('Email not confirmed')) {
+        message = 'E-posta adresiniz henüz doğrulanmamış.';
+      } else {
+        message = errMessage;
+      }
+      
+      Alert.alert('Giriş Hatası', message);
     } finally {
       setLoading(false);
     }
+    */
+    // Direkt içeri alalım
+    navigation.navigate('Home');
   };
 
   return (

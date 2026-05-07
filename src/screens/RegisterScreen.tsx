@@ -14,20 +14,42 @@ export default function RegisterScreen({ navigation }: any) {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleRegister = async () => {
+    /* 
+    // Auth şimdilik devre dışı bırakıldı
     if (!email || !password) {
       Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
       return;
     }
     setLoading(true);
     try {
-      await signUp(email, password);
-      Alert.alert('Başarılı', 'Kayıt başarılı! Şimdi giriş yapabilirsin.');
+      const data = await signUp(email, password);
+      
+      if (data && !data.session && !data.user) {
+        Alert.alert('Hata', 'Bu e-posta adresi zaten kayıtlı. Lütfen giriş yapın.');
+        return;
+      }
+
+      Alert.alert('Başarılı', 'Kayıt başarılı! Hoş geldin.');
       navigation.navigate('Login');
     } catch (err: any) {
-      Alert.alert('Kayıt Hatası', err.message || 'Bir sorun oluştu.');
+      let message = err.message || 'Bir sorun oluştu.';
+      
+      if (message.includes('User already registered') || message.includes('already exists')) {
+        message = 'Bu e-posta adresi zaten kayıtlı.';
+      } else if (message.includes('Password should be at least')) {
+        message = 'Şifreniz en az 6 karakter olmalıdır.';
+      } else if (message.includes('Unable to validate email')) {
+        message = 'Geçersiz bir e-posta adresi girdiniz.';
+      }
+
+      Alert.alert('Kayıt Hatası', message);
     } finally {
       setLoading(false);
     }
+    */
+    // Geçici olarak ana sayfaya yönlendirelim (navigasyon bypass edilmezse diye)
+    Alert.alert('Bilgi', 'Auth sistemi şimdilik devre dışı.');
+    navigation.navigate('Home');
   };
 
   return (
