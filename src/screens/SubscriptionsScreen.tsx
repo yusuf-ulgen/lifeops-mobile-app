@@ -6,8 +6,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import Toast from 'react-native-toast-message';
+import { Repeat, CreditCard, X, Plus, Sparkles } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { CreditCard, Plus, X, AlertCircle } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { analyzeOrderScreenshot } from '../services/aiService';
 
 const DARK_GREEN = '#154c44';
 const MINT_BG = '#e8f8f3';
@@ -50,6 +52,37 @@ export default function SubscriptionsScreen() {
       setModalVisible(false); setName(''); setAmount('');
     } catch { 
       Toast.show({ type: 'error', text1: t('common.error'), text2: t('subscriptions.error_failed') }); 
+    }
+  };
+
+  const [loadingAI, setLoadingAI] = useState(false);
+
+  const handleAIAnalysis = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.8,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0].base64) {
+      setLoadingAI(true);
+      try {
+        const data = await analyzeOrderScreenshot(result.assets[0].base64, true);
+        if (data.name) setName(data.name);
+        if (data.amount) setAmount(data.amount.toString());
+        if (data.period) setCycle(data.period);
+        
+        Toast.show({ 
+          type: 'success', 
+          text1: t('common.great'), 
+          text2: t('returns.ai_success') || 'Bilgiler başarıyla dolduruldu!' 
+        });
+      } catch (err) {
+        Toast.show({ type: 'error', text1: t('common.error'), text2: 'Analiz başarısız oldu.' });
+      } finally {
+        setLoadingAI(false);
+      }
     }
   };
 
@@ -144,6 +177,21 @@ export default function SubscriptionsScreen() {
             </TouchableOpacity>
           </View>
 
+          <TouchableOpacity 
+            style={styles.aiButton} 
+            onPress={handleAIAnalysis}
+            disabled={loadingAI}
+          >
+            {loadingAI ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <>
+                <Sparkles size={20} color="white" />
+                <Text style={styles.aiButtonText}>{t('common.add_from_image')}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
           <Text style={styles.inputLabel}>{t('subscriptions.name')}</Text>
           <TextInput style={styles.input} placeholder={t('subscriptions.name')} placeholderTextColor="#9ca3af" value={name} onChangeText={setName} />
 
@@ -227,6 +275,26 @@ const styles = StyleSheet.create({
   modalContainer: { flex: 1, backgroundColor: '#e8f8f3', paddingHorizontal: 24, paddingTop: 80 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 },
   modalTitle: { color: '#154c44', fontSize: 22, fontWeight: '700' },
+  aiButton: {
+    backgroundColor: '#10b981',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 15,
+    borderRadius: 14,
+    marginBottom: 24,
+    gap: 10,
+    shadowColor: '#10b981',
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  aiButtonText: {
+    color: 'white',
+    fontWeight: '700',
+    fontSize: 15,
+  },
   inputLabel: { color: '#154c44', fontWeight: '600', fontSize: 14, marginBottom: 8, marginLeft: 4 },
   input: {
     backgroundColor: '#ffffff', borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14,

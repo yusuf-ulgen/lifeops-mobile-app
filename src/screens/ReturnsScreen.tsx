@@ -7,8 +7,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useReturnStore } from '../store/useReturnStore';
 import { calculateDaysRemaining, formatDate } from '../utils/dateUtils';
 import Toast from 'react-native-toast-message';
-import { Package, Clock, X, Calendar, ShoppingBag } from 'lucide-react-native';
+import { Package, Clock, X, Calendar, ShoppingBag, ImagePlus, Sparkles } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
+import * as ImagePicker from 'expo-image-picker';
+import { analyzeOrderScreenshot } from '../services/aiService';
 
 const DARK_GREEN = '#154c44';
 const MINT_BG = '#e8f8f3';
@@ -42,6 +44,39 @@ export default function ReturnsScreen() {
       Toast.show({ type: 'error', text1: t('common.error'), text2: t('subscriptions.error_failed') }); 
     }
   };
+
+  const handleAIAnalysis = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.8,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0].base64) {
+      setLoadingAI(true);
+      try {
+        const data = await analyzeOrderScreenshot(result.assets[0].base64);
+        if (data.product_name) setProductName(data.product_name);
+        if (data.store_name) setStoreName(data.store_name);
+        if (data.price) setPrice(data.price.toString());
+        if (data.purchase_date) setPurchaseDate(data.purchase_date);
+        if (data.return_window) setReturnWindow(data.return_window.toString());
+        
+        Toast.show({ 
+          type: 'success', 
+          text1: t('common.great'), 
+          text2: t('returns.ai_success') || 'Bilgiler başarıyla dolduruldu!' 
+        });
+      } catch (err) {
+        Toast.show({ type: 'error', text1: t('common.error'), text2: 'Analiz başarısız oldu.' });
+      } finally {
+        setLoadingAI(false);
+      }
+    }
+  };
+
+  const [loadingAI, setLoadingAI] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -131,6 +166,21 @@ export default function ReturnsScreen() {
               <X size={24} color={DARK_GREEN} />
             </TouchableOpacity>
           </View>
+
+          <TouchableOpacity 
+            style={styles.aiButton} 
+            onPress={handleAIAnalysis}
+            disabled={loadingAI}
+          >
+            {loadingAI ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <>
+                <Sparkles size={20} color="white" />
+                <Text style={styles.aiButtonText}>{t('common.add_from_image')}</Text>
+              </>
+            )}
+          </TouchableOpacity>
 
           <Text style={styles.inputLabel}>{t('returns.product_name') || 'Ürün Adı'}</Text>
           <TextInput style={styles.input} placeholder={t('returns.product_name_placeholder') || 'Örn: Siyah Kazak'} placeholderTextColor="#9ca3af" value={productName} onChangeText={setProductName} />
@@ -229,6 +279,26 @@ const styles = StyleSheet.create({
   modalContainer: { flex: 1, backgroundColor: '#e8f8f3', paddingHorizontal: 24, paddingTop: 80 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 },
   modalTitle: { color: '#154c44', fontSize: 22, fontWeight: '700' },
+  aiButton: {
+    backgroundColor: '#10b981',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 15,
+    borderRadius: 14,
+    marginBottom: 24,
+    gap: 10,
+    shadowColor: '#10b981',
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  aiButtonText: {
+    color: 'white',
+    fontWeight: '700',
+    fontSize: 15,
+  },
   inputLabel: { color: '#154c44', fontWeight: '600', fontSize: 14, marginBottom: 8, marginLeft: 4 },
   input: {
     backgroundColor: '#ffffff', borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14,
