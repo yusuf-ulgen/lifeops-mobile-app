@@ -8,12 +8,16 @@ import { useReturnStore } from '../store/useReturnStore';
 import { calculateDaysRemaining, formatDate } from '../utils/dateUtils';
 import Toast from 'react-native-toast-message';
 import { Package, Clock, X, Calendar, ShoppingBag } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 const DARK_GREEN = '#154c44';
 const MINT_BG = '#e8f8f3';
 const WHITE = '#ffffff';
 
+import { toastConfig } from '../config/toastConfig';
+
 export default function ReturnsScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { returns, loadReturns, createReturn, completeReturn, isLoading } = useReturnStore();
   const [modalVisible, setModalVisible] = useState(false);
@@ -26,23 +30,28 @@ export default function ReturnsScreen() {
   useEffect(() => { loadReturns(); }, []);
 
   const handleAdd = async () => {
-    if (!productName || !storeName || !price || !returnWindow) { Alert.alert('Hata', 'Lütfen tüm alanları doldurun.'); return; }
+    if (!productName || !storeName || !price || !returnWindow) { 
+      Toast.show({ type: 'error', text1: t('common.error'), text2: t('common.error_fields') }); 
+      return; 
+    }
     try {
       await createReturn({ product_name: productName, store_name: storeName, price: parseFloat(price), purchase_date: purchaseDate, return_window_days: parseInt(returnWindow, 10) });
-      Toast.show({ type: 'success', text1: 'Başarılı', text2: 'Ürün takibe alındı.' });
+      Toast.show({ type: 'success', text1: t('common.success'), text2: t('returns.success_added') || 'Ürün takibe alındı.' });
       setModalVisible(false); setProductName(''); setStoreName(''); setPrice(''); setReturnWindow('14');
-    } catch { Toast.show({ type: 'error', text1: 'Hata', text2: 'Ekleme başarısız.' }); }
+    } catch { 
+      Toast.show({ type: 'error', text1: t('common.error'), text2: t('subscriptions.error_failed') }); 
+    }
   };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={MINT_BG} />
 
-      {/* Header - No dark green header on returns page based on screenshot */}
+      {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-        <Text style={styles.headerTitle}>İadelerim</Text>
+        <Text style={styles.headerTitle}>{t('returns.title') || 'İadelerim'}</Text>
         <TouchableOpacity style={styles.addBtn} onPress={() => setModalVisible(true)}>
-          <Text style={styles.addBtnText}>+ Ekle</Text>
+          <Text style={styles.addBtnText}>+ {t('common.add') || 'Ekle'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -65,12 +74,12 @@ export default function ReturnsScreen() {
                     <Clock size={20} color={DARK_GREEN} strokeWidth={2.5} />
                   </View>
                 </View>
-                <Text style={styles.emptyTitle}>İade Takibi Yok</Text>
+                <Text style={styles.emptyTitle}>{t('returns.no_tracking_title') || 'İade Takibi Yok'}</Text>
                 <Text style={styles.emptyDesc}>
-                  Aldığınız ürünlerin iade sürelerini kaçırmamak için hemen bir takip başlatın.
+                  {t('returns.no_tracking_desc') || 'Aldığınız ürünlerin iade sürelerini kaçırmamak için hemen bir takip başlatın.'}
                 </Text>
                 <TouchableOpacity style={styles.primaryBtn} onPress={() => setModalVisible(true)}>
-                  <Text style={styles.primaryBtnText}>İlk İadeyi Ekle</Text>
+                  <Text style={styles.primaryBtnText}>{t('returns.add_first') || 'İlk İadeyi Ekle'}</Text>
                 </TouchableOpacity>
               </View>
             }
@@ -86,16 +95,16 @@ export default function ReturnsScreen() {
                       <ShoppingBag size={12} color={DARK_GREEN} />
                       <Text style={styles.itemStore}> {item.store_name}</Text>
                     </View>
-                    <Text style={styles.itemPrice}>€{item.price}</Text>
+                    <Text style={styles.itemPrice}>₺{item.price}</Text>
                   </View>
                   <View>
                     <View style={[styles.daysBadge, isExpired ? styles.expiredBadge : isCritical ? styles.criticalBadge : styles.normalBadge]}>
                       <Text style={[styles.daysText, isExpired ? styles.expiredText : isCritical ? styles.criticalText : styles.normalText]}>
-                        {isExpired ? 'SÜRE DOLDU' : `${daysRemaining} GÜN`}
+                        {isExpired ? (t('returns.expired') || 'SÜRE DOLDU') : `${daysRemaining} ${t('common.days') || 'GÜN'}`}
                       </Text>
                     </View>
                     <TouchableOpacity style={styles.doneBtn} onPress={() => completeReturn(item.id)}>
-                      <Text style={styles.doneBtnText}>İade Edildi</Text>
+                      <Text style={styles.doneBtnText}>{t('returns.returned_btn') || 'İade Edildi'}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -104,7 +113,7 @@ export default function ReturnsScreen() {
             ListFooterComponent={
               returns.length > 0 ? (
                 <TouchableOpacity style={[styles.primaryBtn, { marginTop: 16 }]} onPress={() => setModalVisible(true)}>
-                  <Text style={styles.primaryBtnText}>Yeni İade Takibi Ekle</Text>
+                  <Text style={styles.primaryBtnText}>{t('returns.add_new') || 'Yeni İade Takibi Ekle'}</Text>
                 </TouchableOpacity>
               ) : null
             }
@@ -115,44 +124,45 @@ export default function ReturnsScreen() {
       {/* Modal */}
       <Modal visible={modalVisible} animationType="slide" presentationStyle="pageSheet">
         <View style={styles.modalContainer}>
+          <Toast config={toastConfig} topOffset={10} />
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>İade Takibi Başlat</Text>
+            <Text style={styles.modalTitle}>{t('returns.add_new') || 'İade Takibi Başlat'}</Text>
             <TouchableOpacity onPress={() => setModalVisible(false)}>
               <X size={24} color={DARK_GREEN} />
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.inputLabel}>Ürün Adı</Text>
-          <TextInput style={styles.input} placeholder="Örn: Siyah Kazak" placeholderTextColor="#9ca3af" value={productName} onChangeText={setProductName} />
+          <Text style={styles.inputLabel}>{t('returns.product_name') || 'Ürün Adı'}</Text>
+          <TextInput style={styles.input} placeholder={t('returns.product_name_placeholder') || 'Örn: Siyah Kazak'} placeholderTextColor="#9ca3af" value={productName} onChangeText={setProductName} />
 
-          <Text style={styles.inputLabel}>Mağaza</Text>
-          <TextInput style={styles.input} placeholder="Örn: Trendyol" placeholderTextColor="#9ca3af" value={storeName} onChangeText={setStoreName} />
+          <Text style={styles.inputLabel}>{t('returns.store_name') || 'Mağaza'}</Text>
+          <TextInput style={styles.input} placeholder={t('returns.store_name_placeholder') || 'Örn: Trendyol'} placeholderTextColor="#9ca3af" value={storeName} onChangeText={setStoreName} />
 
           <View style={{ flexDirection: 'row' }}>
             <View style={{ flex: 1, marginRight: 8 }}>
-              <Text style={styles.inputLabel}>Fiyat</Text>
+              <Text style={styles.inputLabel}>{t('subscriptions.amount')}</Text>
               <View style={styles.inputRow}>
-                <Text style={styles.currencySymbol}>€</Text>
+                <Text style={styles.currencySymbol}>₺</Text>
                 <TextInput style={[styles.input, { flex: 1, borderWidth: 0, paddingHorizontal: 0, marginBottom: 0 }]} placeholder="0.00" placeholderTextColor="#9ca3af" value={price} onChangeText={setPrice} keyboardType="numeric" />
               </View>
             </View>
             <View style={{ flex: 1, marginLeft: 8 }}>
-              <Text style={styles.inputLabel}>İade Süresi</Text>
+              <Text style={styles.inputLabel}>{t('returns.window') || 'İade Süresi'}</Text>
               <View style={styles.inputRow}>
                 <TextInput style={[styles.input, { flex: 1, borderWidth: 0, paddingHorizontal: 0, marginBottom: 0 }]} placeholder="14" placeholderTextColor="#9ca3af" value={returnWindow} onChangeText={setReturnWindow} keyboardType="numeric" />
-                <Text style={styles.unitText}>GÜN</Text>
+                <Text style={styles.unitText}>{t('common.days') || 'GÜN'}</Text>
               </View>
             </View>
           </View>
 
-          <Text style={[styles.inputLabel, { marginTop: 16 }]}>Satın Alınma Tarihi</Text>
+          <Text style={[styles.inputLabel, { marginTop: 16 }]}>{t('returns.purchase_date') || 'Satın Alınma Tarihi'}</Text>
           <View style={styles.inputRow}>
             <Calendar size={20} color={DARK_GREEN} />
             <TextInput style={[styles.input, { flex: 1, borderWidth: 0, marginBottom: 0, paddingHorizontal: 12 }]} placeholder="2023-10-24" placeholderTextColor="#9ca3af" value={purchaseDate} onChangeText={setPurchaseDate} />
           </View>
 
           <TouchableOpacity style={[styles.primaryBtn, { marginTop: 'auto', marginBottom: 32 }]} onPress={handleAdd}>
-            <Text style={styles.primaryBtnText}>Takibi Başlat</Text>
+            <Text style={styles.primaryBtnText}>{t('returns.start_tracking') || 'Takibi Başlat'}</Text>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -216,7 +226,7 @@ const styles = StyleSheet.create({
   expiredText: { color: '#9ca3af' },
   doneBtn: { backgroundColor: '#e8f8f3', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10 },
   doneBtnText: { color: '#154c44', fontWeight: '700', fontSize: 11 },
-  modalContainer: { flex: 1, backgroundColor: '#e8f8f3', paddingHorizontal: 24, paddingTop: 40 },
+  modalContainer: { flex: 1, backgroundColor: '#e8f8f3', paddingHorizontal: 24, paddingTop: 80 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 },
   modalTitle: { color: '#154c44', fontSize: 22, fontWeight: '700' },
   inputLabel: { color: '#154c44', fontWeight: '600', fontSize: 14, marginBottom: 8, marginLeft: 4 },

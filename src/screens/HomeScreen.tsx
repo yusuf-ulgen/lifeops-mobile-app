@@ -9,13 +9,15 @@ import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { useReturnStore } from '../store/useReturnStore';
 import { calculateDaysRemaining } from '../utils/dateUtils';
 import { signOutUser } from '../services/auth';
-import { LogOut, Package } from 'lucide-react-native';
+import { LogOut, Package, QrCode } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 const DARK_GREEN = '#154c44';
 const MINT_BG = '#e8f8f3';
 const WHITE = '#ffffff';
 
 export default function HomeScreen({ navigation }: any) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const { subscriptions, loadSubscriptions } = useSubscriptionStore();
@@ -48,13 +50,15 @@ export default function HomeScreen({ navigation }: any) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={DARK_GREEN} />
 
-      {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
         <View>
-          <Text style={styles.headerTitle}>Genel Bakış</Text>
-          <Text style={styles.headerSubtitle}>Merhaba, Kullanıcı</Text>
+          <Text style={styles.headerTitle}>{t('common.overview') || 'Genel Bakış'}</Text>
+          <Text style={styles.headerSubtitle}>{t('common.greeting', { name: 'Kullanıcı' }) || 'Merhaba, Kullanıcı'}</Text>
         </View>
         <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => navigation.navigate('QRScanner')} style={styles.headerIconBtn}>
+            <QrCode size={24} color={WHITE} />
+          </TouchableOpacity>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{initials}</Text>
           </View>
@@ -72,19 +76,19 @@ export default function HomeScreen({ navigation }: any) {
       >
         {/* Abonelikler Kartı */}
         <View style={styles.card}>
-          <Text style={styles.cardLabel}>Abonelikler</Text>
+          <Text style={styles.cardLabel}>{t('subscriptions.title')}</Text>
           <Text style={styles.cardAmount}>
-            €{monthlyTotal.toLocaleString('tr-TR', { minimumFractionDigits: 0 })}
+            ₺{monthlyTotal.toLocaleString('tr-TR', { minimumFractionDigits: 0 })}
           </Text>
-          <Text style={styles.cardSub}>{subscriptions.length} Aktif Abonelik</Text>
+          <Text style={styles.cardSub}>{t('subscriptions.active_count', { count: subscriptions.length }) || `${subscriptions.length} Aktif Abonelik`}</Text>
         </View>
 
         {/* Kritik İadeler Kartı */}
         <View style={styles.card}>
           <View style={styles.cardRowHeader}>
-            <Text style={styles.cardLabel}>Kritik İadeler</Text>
+            <Text style={styles.cardLabel}>{t('returns.urgent_title') || 'Kritik İadeler'}</Text>
             <TouchableOpacity onPress={() => navigation.navigate('Returns')}>
-              <Text style={styles.seeAll}>Tümünü Gör</Text>
+              <Text style={styles.seeAll}>{t('common.see_all') || 'Tümünü Gör'}</Text>
             </TouchableOpacity>
           </View>
 
@@ -93,8 +97,8 @@ export default function HomeScreen({ navigation }: any) {
           ) : urgentReturns.length === 0 ? (
             <View style={styles.emptyInner}>
               <Package size={48} color={DARK_GREEN} strokeWidth={1.5} />
-              <Text style={styles.emptyTitle}>Harika!</Text>
-              <Text style={styles.emptyDesc}>Şu an acil bir iade bulunmuyor.</Text>
+              <Text style={styles.emptyTitle}>{t('common.great') || 'Harika!'}</Text>
+              <Text style={styles.emptyDesc}>{t('returns.no_urgent') || 'Şu an acil bir iade bulunmuyor.'}</Text>
             </View>
           ) : (
             urgentReturns.map((item) => {
@@ -139,7 +143,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
   },
   avatarText: { color: '#154c44', fontWeight: '700', fontSize: 15 },
-  logoutBtn: { padding: 6 },
+  headerIconBtn: { padding: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12 },
+  logoutBtn: { padding: 8 },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingTop: 20, paddingBottom: 40 },
   card: {

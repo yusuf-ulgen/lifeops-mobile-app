@@ -14,6 +14,7 @@ import WelcomeScreen from '../screens/WelcomeScreen';
 import HomeScreen from '../screens/HomeScreen';
 import SubscriptionsScreen from '../screens/SubscriptionsScreen';
 import ReturnsScreen from '../screens/ReturnsScreen';
+import QRScannerScreen from '../screens/QRScannerScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -79,7 +80,7 @@ const AuthStack = () => (
 );
 
 export const AppNavigator = () => {
-  const { isLoading } = useAuthStore();
+  const { isLoading, user } = useAuthStore();
 
   useEffect(() => {
     const subscription = initializeAuthListener();
@@ -97,8 +98,16 @@ export const AppNavigator = () => {
 
   return (
     <NavigationContainer>
-      {/* Auth bypass - direkt ana sayfa */}
-      <MainTabs />
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {!user ? (
+          <Stack.Screen name="Auth" component={AuthStack} />
+        ) : (
+          <>
+            <Stack.Screen name="Main" component={MainTabs} />
+            <Stack.Screen name="QRScanner" component={QRScannerScreen} />
+          </>
+        )}
+      </Stack.Navigator>
     </NavigationContainer>
   );
 };

@@ -6,13 +6,17 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import Toast from 'react-native-toast-message';
-import { CreditCard, Plus, X } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
+import { CreditCard, Plus, X, AlertCircle } from 'lucide-react-native';
 
 const DARK_GREEN = '#154c44';
 const MINT_BG = '#e8f8f3';
 const WHITE = '#ffffff';
 
+import { toastConfig } from '../config/toastConfig';
+
 export default function SubscriptionsScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { subscriptions, loadSubscriptions, createSubscription, removeSubscription, isLoading } = useSubscriptionStore();
   const [modalVisible, setModalVisible] = useState(false);
@@ -29,20 +33,30 @@ export default function SubscriptionsScreen() {
     acc + (sub.billing_cycle === 'yearly' ? Number(sub.amount) : Number(sub.amount) * 12), 0);
 
   const handleAdd = async () => {
-    if (!name || !amount) { Alert.alert('Hata', 'Lütfen tüm alanları doldurun.'); return; }
+    if (!name || !amount) { 
+      Toast.show({ type: 'error', text1: t('common.error'), text2: t('common.error_fields') }); 
+      return; 
+    }
     try {
       const nextDate = new Date();
       nextDate.setMonth(nextDate.getMonth() + 1);
-      await createSubscription({ name, amount: parseFloat(amount), billing_cycle: cycle, next_billing_date: nextDate.toISOString().split('T')[0] });
-      Toast.show({ type: 'success', text1: 'Başarılı', text2: 'Abonelik eklendi.' });
+      await createSubscription({ 
+        name, 
+        amount: parseFloat(amount), 
+        billing_cycle: cycle, 
+        next_billing_date: nextDate.toISOString().split('T')[0] 
+      });
+      Toast.show({ type: 'success', text1: t('common.success'), text2: t('subscriptions.success_added') });
       setModalVisible(false); setName(''); setAmount('');
-    } catch { Toast.show({ type: 'error', text1: 'Hata', text2: 'Ekleme başarısız.' }); }
+    } catch { 
+      Toast.show({ type: 'error', text1: t('common.error'), text2: t('subscriptions.error_failed') }); 
+    }
   };
 
   const handleDelete = (id: string) => {
-    Alert.alert('Sil', 'Bu aboneliği silmek istediğinize emin misiniz?', [
-      { text: 'İptal', style: 'cancel' },
-      { text: 'Sil', style: 'destructive', onPress: () => removeSubscription(id) }
+    Alert.alert(t('subscriptions.delete_confirm_title'), t('subscriptions.delete_confirm_desc'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.delete'), style: 'destructive', onPress: () => removeSubscription(id) }
     ]);
   };
 
@@ -52,19 +66,19 @@ export default function SubscriptionsScreen() {
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
-        <Text style={styles.headerTitle}>Aboneliklerim</Text>
+        <Text style={styles.headerTitle}>{t('subscriptions.title')}</Text>
       </View>
 
       <View style={styles.body}>
         {/* Stats Row */}
         <View style={styles.statsRow}>
           <View style={[styles.statCard, { marginRight: 8 }]}>
-            <Text style={styles.statLabel}>Aylık Toplam{'\n'}Gider</Text>
-            <Text style={styles.statValue}>€{monthlyTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</Text>
+            <Text style={styles.statLabel}>{t('subscriptions.monthly_total')}</Text>
+            <Text style={styles.statValue}>₺{monthlyTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</Text>
           </View>
           <View style={[styles.statCard, { marginLeft: 8 }]}>
-            <Text style={styles.statLabel}>Yıllık Tahmini</Text>
-            <Text style={styles.statValue}>€{yearlyTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</Text>
+            <Text style={styles.statLabel}>{t('subscriptions.yearly_total')}</Text>
+            <Text style={styles.statValue}>₺{yearlyTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</Text>
           </View>
         </View>
 
@@ -87,12 +101,12 @@ export default function SubscriptionsScreen() {
                     <Plus size={20} color={DARK_GREEN} strokeWidth={3} />
                   </View>
                 </View>
-                <Text style={styles.emptyTitle}>Abonelik Yok</Text>
+                <Text style={styles.emptyTitle}>{t('subscriptions.no_subscriptions')}</Text>
                 <Text style={styles.emptyDesc}>
-                  Henüz bir abonelik eklemediniz. Giderlerinizi takip etmek için hemen bir tane ekleyin.
+                  {t('subscriptions.no_subscriptions_desc')}
                 </Text>
                 <TouchableOpacity style={styles.primaryBtn} onPress={() => setModalVisible(true)}>
-                  <Text style={styles.primaryBtnText}>İlk Aboneliği Ekle</Text>
+                  <Text style={styles.primaryBtnText}>{t('subscriptions.add_first')}</Text>
                 </TouchableOpacity>
               </View>
             }
@@ -100,9 +114,9 @@ export default function SubscriptionsScreen() {
               <View style={styles.listItem}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.itemName}>{item.name}</Text>
-                  <Text style={styles.itemSub}>{item.billing_cycle === 'monthly' ? 'Aylık' : 'Yıllık'} Ödeme</Text>
+                  <Text style={styles.itemSub}>{item.billing_cycle === 'monthly' ? t('subscriptions.monthly') : t('subscriptions.yearly')}</Text>
                 </View>
-                <Text style={styles.itemAmount}>€{item.amount}</Text>
+                <Text style={styles.itemAmount}>₺{item.amount}</Text>
                 <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.deleteBtn}>
                   <X size={16} color="#ef4444" strokeWidth={2.5} />
                 </TouchableOpacity>
@@ -111,7 +125,7 @@ export default function SubscriptionsScreen() {
             ListFooterComponent={
               subscriptions.length > 0 ? (
                 <TouchableOpacity style={[styles.primaryBtn, { marginTop: 16 }]} onPress={() => setModalVisible(true)}>
-                  <Text style={styles.primaryBtnText}>Yeni Abonelik Ekle</Text>
+                  <Text style={styles.primaryBtnText}>{t('subscriptions.add_new')}</Text>
                 </TouchableOpacity>
               ) : null
             }
@@ -122,34 +136,35 @@ export default function SubscriptionsScreen() {
       {/* Modal */}
       <Modal visible={modalVisible} animationType="slide" presentationStyle="pageSheet">
         <View style={styles.modalContainer}>
+          <Toast config={toastConfig} topOffset={10} />
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Yeni Abonelik</Text>
+            <Text style={styles.modalTitle}>{t('subscriptions.add_new')}</Text>
             <TouchableOpacity onPress={() => setModalVisible(false)}>
               <X size={24} color={DARK_GREEN} />
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.inputLabel}>Abonelik Adı</Text>
-          <TextInput style={styles.input} placeholder="Örn: Netflix" placeholderTextColor="#9ca3af" value={name} onChangeText={setName} />
+          <Text style={styles.inputLabel}>{t('subscriptions.name')}</Text>
+          <TextInput style={styles.input} placeholder={t('subscriptions.name')} placeholderTextColor="#9ca3af" value={name} onChangeText={setName} />
 
-          <Text style={styles.inputLabel}>Tutar</Text>
+          <Text style={styles.inputLabel}>{t('subscriptions.amount')}</Text>
           <View style={styles.inputRow}>
-            <Text style={styles.currencySymbol}>€</Text>
-            <TextInput style={[styles.input, { flex: 1, borderWidth: 0, paddingHorizontal: 0 }]} placeholder="0.00" placeholderTextColor="#9ca3af" value={amount} onChangeText={setAmount} keyboardType="numeric" />
+            <Text style={styles.currencySymbol}>₺</Text>
+            <TextInput style={[styles.input, { flex: 1, borderWidth: 0, paddingHorizontal: 0, marginBottom: 0 }]} placeholder="0.00" placeholderTextColor="#9ca3af" value={amount} onChangeText={setAmount} keyboardType="numeric" />
           </View>
 
-          <Text style={styles.inputLabel}>Ödeme Periyodu</Text>
+          <Text style={styles.inputLabel}>{t('subscriptions.period')}</Text>
           <View style={styles.segmented}>
             <TouchableOpacity style={[styles.segBtn, cycle === 'monthly' && styles.segBtnActive]} onPress={() => setCycle('monthly')}>
-              <Text style={[styles.segBtnText, cycle === 'monthly' && styles.segBtnTextActive]}>Aylık</Text>
+              <Text style={[styles.segBtnText, cycle === 'monthly' && styles.segBtnTextActive]}>{t('subscriptions.monthly')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.segBtn, cycle === 'yearly' && styles.segBtnActive]} onPress={() => setCycle('yearly')}>
-              <Text style={[styles.segBtnText, cycle === 'yearly' && styles.segBtnTextActive]}>Yıllık</Text>
+              <Text style={[styles.segBtnText, cycle === 'yearly' && styles.segBtnTextActive]}>{t('subscriptions.yearly')}</Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={[styles.primaryBtn, { marginTop: 'auto', marginBottom: 32 }]} onPress={handleAdd}>
-            <Text style={styles.primaryBtnText}>Aboneliği Kaydet</Text>
+            <Text style={styles.primaryBtnText}>{t('common.save')}</Text>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -172,6 +187,7 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', marginBottom: 16 },
   statCard: {
     flex: 1, backgroundColor: '#ffffff', borderRadius: 16, padding: 16,
+    minHeight: 100, justifyContent: 'center',
     shadowColor: '#154c44', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 3,
   },
   statLabel: { color: '#154c44', fontWeight: '600', fontSize: 13, lineHeight: 20, marginBottom: 8 },
@@ -208,7 +224,7 @@ const styles = StyleSheet.create({
   itemSub: { color: '#6b7280', fontSize: 12, marginTop: 2 },
   itemAmount: { color: '#154c44', fontWeight: '800', fontSize: 18, marginRight: 12 },
   deleteBtn: { backgroundColor: '#fff0f0', padding: 8, borderRadius: 20 },
-  modalContainer: { flex: 1, backgroundColor: '#e8f8f3', paddingHorizontal: 24, paddingTop: 40 },
+  modalContainer: { flex: 1, backgroundColor: '#e8f8f3', paddingHorizontal: 24, paddingTop: 80 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 },
   modalTitle: { color: '#154c44', fontSize: 22, fontWeight: '700' },
   inputLabel: { color: '#154c44', fontWeight: '600', fontSize: 14, marginBottom: 8, marginLeft: 4 },

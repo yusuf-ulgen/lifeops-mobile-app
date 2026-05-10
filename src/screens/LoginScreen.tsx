@@ -2,47 +2,77 @@ import React, { useState } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, Alert, 
   ActivityIndicator, KeyboardAvoidingView, Platform, 
-  ScrollView, StyleSheet, StatusBar 
+  ScrollView, StyleSheet, StatusBar, Modal
 } from 'react-native';
 import { signIn } from '../services/auth';
-import { Mail, Lock, ChevronLeft, Eye, EyeOff } from 'lucide-react-native';
+import { Mail, Lock, ChevronLeft, Eye, EyeOff, Languages, Check, X } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
 
 export default function LoginScreen({ navigation }: any) {
+  const { t, i18n } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [langModalVisible, setLangModalVisible] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+
+  const languages = [
+    { code: 'tr', name: 'Türkçe' },
+    { code: 'en', name: 'English' },
+    { code: 'es', name: 'Español' },
+    { code: 'fr', name: 'Français' },
+    { code: 'de', name: 'Deutsch' },
+    { code: 'it', name: 'Italiano' },
+    { code: 'pt', name: 'Português' },
+    { code: 'ru', name: 'Русский' },
+    { code: 'zh', name: '中文' },
+    { code: 'ja', name: '日本語' },
+    { code: 'ko', name: '한국어' },
+    { code: 'ar', name: 'العربية' },
+    { code: 'hi', name: 'हिन्दी' },
+    { code: 'bn', name: 'বাংলা' },
+    { code: 'ur', name: 'اردو' },
+    { code: 'id', name: 'Bahasa Indonesia' },
+    { code: 'vi', name: 'Tiếng Việt' },
+    { code: 'th', name: 'ไทย' },
+    { code: 'pl', name: 'Polski' },
+    { code: 'nl', name: 'Nederlands' },
+  ];
+
+  const changeLanguage = async (code: string) => {
+    await i18n.changeLanguage(code);
+    await AsyncStorage.setItem('user-language', code);
+    setLangModalVisible(false);
+  };
 
   const handleLogin = async () => {
-    /*
-    // Auth şimdilik devre dışı bırakıldı
     if (!email || !password) {
-      Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
+      Toast.show({ type: 'error', text1: t('common.error'), text2: t('login.error_fields') });
       return;
     }
     setLoading(true);
     try {
       await signIn(email, password);
+      await AsyncStorage.setItem('remember-me', rememberMe ? 'true' : 'false');
     } catch (err: any) {
-      let message = 'Giriş yapılamadı.';
+      let message = t('login.error_invalid');
       const errMessage = err.message || '';
 
-      if (errMessage.includes('Invalid login credentials')) {
-        // Kullanıcıya hem email hem şifre kontrolü yapması gerektiğini belirten net bir mesaj
-        message = 'Girdiğiniz bilgiler sistemimizdeki kayıtlarla eşleşmiyor. Lütfen e-posta adresinizi ve şifrenizi kontrol edin.';
-      } else if (errMessage.includes('Email not confirmed')) {
-        message = 'E-posta adresiniz henüz doğrulanmamış.';
+      if (errMessage.includes('Email not confirmed')) {
+        message = t('login.error_unconfirmed');
+      } else if (errMessage.includes('Invalid login credentials')) {
+        message = t('login.error_invalid');
       } else {
         message = errMessage;
       }
       
-      Alert.alert('Giriş Hatası', message);
+      Toast.show({ type: 'error', text1: t('common.error'), text2: message });
     } finally {
       setLoading(false);
     }
-    */
-    // Direkt içeri alalım
-    navigation.navigate('Home');
   };
 
   return (
@@ -53,23 +83,33 @@ export default function LoginScreen({ navigation }: any) {
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <TouchableOpacity 
-            style={styles.backButton} 
-            onPress={() => navigation.goBack()}
-          >
-            <ChevronLeft size={28} color="#000" />
-          </TouchableOpacity>
+          <View style={styles.topRow}>
+            <TouchableOpacity 
+              style={styles.backButton} 
+              onPress={() => navigation.goBack()}
+            >
+              <ChevronLeft size={28} color="#000" />
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.langButton} 
+              onPress={() => setLangModalVisible(true)}
+            >
+              <Languages size={24} color="#3b82f6" />
+              <Text style={styles.langButtonText}>{i18n.language.toUpperCase()}</Text>
+            </TouchableOpacity>
+          </View>
 
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Giriş Yap</Text>
-            <Text style={styles.headerSubtitle}>Hesabınıza erişmek için bilgilerinizi girin.</Text>
+            <Text style={styles.headerTitle}>{t('login.title')}</Text>
+            <Text style={styles.headerSubtitle}>{t('login.subtitle')}</Text>
           </View>
 
           <View style={styles.card}>
             <View style={styles.inputGroup}>
               <TextInput
                 style={styles.input}
-                placeholder="E-posta"
+                placeholder={t('login.email')}
                 placeholderTextColor="#9ca3af"
                 value={email}
                 onChangeText={setEmail}
@@ -82,7 +122,7 @@ export default function LoginScreen({ navigation }: any) {
               <View style={styles.passwordContainer}>
                 <TextInput
                   style={[styles.input, { flex: 1, borderBottomWidth: 0 }]}
-                  placeholder="Şifre"
+                  placeholder={t('login.password')}
                   placeholderTextColor="#9ca3af"
                   value={password}
                   onChangeText={setPassword}
@@ -94,8 +134,19 @@ export default function LoginScreen({ navigation }: any) {
               </View>
             </View>
 
+            <TouchableOpacity 
+              style={styles.rememberMeContainer} 
+              onPress={() => setRememberMe(!rememberMe)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
+                {rememberMe && <Check size={14} color="white" strokeWidth={3} />}
+              </View>
+              <Text style={styles.rememberMeText}>{t('login.remember_me')}</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity style={styles.forgotPassword}>
-              <Text style={styles.forgotPasswordText}>Şifremi Unuttum</Text>
+              <Text style={styles.forgotPasswordText}>{t('login.forgot_password')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -107,7 +158,7 @@ export default function LoginScreen({ navigation }: any) {
               {loading ? (
                 <ActivityIndicator color="white" />
               ) : (
-                <Text style={styles.buttonText}>Giriş Yap</Text>
+                <Text style={styles.buttonText}>{t('login.login_button')}</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -115,12 +166,44 @@ export default function LoginScreen({ navigation }: any) {
           <View style={styles.footer}>
             <TouchableOpacity onPress={() => navigation.navigate('Register')}>
               <Text style={styles.footerText}>
-                Henüz hesabınız yok mu? <Text style={styles.footerLink}>Kaydolun</Text>
+                {t('login.no_account')} <Text style={styles.footerLink}>{t('login.register')}</Text>
               </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={langModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setLangModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.langModalContent}>
+            <View style={styles.langModalHeader}>
+              <Text style={styles.langModalTitle}>Dil Seçin / Select Language</Text>
+              <TouchableOpacity onPress={() => setLangModalVisible(false)}>
+                <X size={24} color="#1e293b" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.langList}>
+              {languages.map((lang) => (
+                <TouchableOpacity 
+                  key={lang.code} 
+                  style={styles.langItem}
+                  onPress={() => changeLanguage(lang.code)}
+                >
+                  <Text style={[styles.langItemText, i18n.language === lang.code && styles.langItemTextActive]}>
+                    {lang.name}
+                  </Text>
+                  {i18n.language === lang.code && <Check size={20} color="#3b82f6" />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -137,7 +220,30 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   backButton: {
+  },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 30,
+  },
+  langButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  langButtonText: {
+    marginLeft: 6,
+    fontWeight: 'bold',
+    color: '#3b82f6',
   },
   header: {
     marginBottom: 40,
@@ -177,6 +283,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  rememberMeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    marginLeft: 5,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#3b82f6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  checkboxActive: {
+    backgroundColor: '#3b82f6',
+  },
+  rememberMeText: {
+    color: '#64748b',
+    fontSize: 14,
+    fontWeight: '500',
+  },
   forgotPassword: {
     alignItems: 'flex-end',
     marginBottom: 30,
@@ -211,6 +341,48 @@ const styles = StyleSheet.create({
     color: '#64748b',
   },
   footerLink: {
+    color: '#3b82f6',
+    fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  langModalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 30,
+    maxHeight: '80%',
+  },
+  langModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  langModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1e293b',
+  },
+  langList: {
+    marginBottom: 20,
+  },
+  langItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  langItemText: {
+    fontSize: 18,
+    color: '#64748b',
+  },
+  langItemTextActive: {
     color: '#3b82f6',
     fontWeight: 'bold',
   },

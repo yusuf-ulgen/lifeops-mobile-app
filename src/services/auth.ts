@@ -26,8 +26,14 @@ export const signOutUser = async () => {
 export const initializeAuthListener = () => {
   const { setSession, setLoading } = useAuthStore.getState();
 
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    setSession(session);
+  supabase.auth.getSession().then(async ({ data: { session } }) => {
+    const rememberMe = await AsyncStorage.getItem('remember-me');
+    if (session && rememberMe === 'false') {
+      await supabase.auth.signOut();
+      setSession(null);
+    } else {
+      setSession(session);
+    }
     setLoading(false);
   });
 

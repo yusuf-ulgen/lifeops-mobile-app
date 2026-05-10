@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ImageBackground, StyleSheet, StatusBar } from 'react-native';
 import { ShieldCheck } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 export default function WelcomeScreen({ navigation }: any) {
+  const { t } = useTranslation();
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -18,7 +20,7 @@ export default function WelcomeScreen({ navigation }: any) {
             </View>
             <Text style={styles.title}>LifeOps</Text>
             <Text style={styles.subtitle}>
-              Yönet, takip et, optimize et.{"\n"}Yaşam operasyonların kontrol altında.
+              {t('welcome.subtitle') || 'Yönet, takip et, optimize et.\nYaşam operasyonların kontrol altında.'}
             </Text>
           </View>
 
@@ -27,14 +29,14 @@ export default function WelcomeScreen({ navigation }: any) {
               style={styles.loginButton}
               onPress={() => navigation.navigate('Login')}
             >
-              <Text style={styles.loginButtonText}>Giriş Yap</Text>
+              <Text style={styles.loginButtonText}>{t('login.login_button')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
               style={styles.registerButton}
               onPress={() => navigation.navigate('Register')}
             >
-              <Text style={styles.registerButtonText}>Kayıt Ol</Text>
+              <Text style={styles.registerButtonText}>{t('login.register')}</Text>
             </TouchableOpacity>
           </View>
         </View>

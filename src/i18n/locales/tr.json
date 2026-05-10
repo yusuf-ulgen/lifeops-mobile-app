@@ -1,0 +1,86 @@
+{
+  "common": {
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "error": "Hata",
+    "success": "Başarılı",
+    "loading": "Yükleniyor...",
+    "delete": "Sil",
+    "overview": "Genel Bakış",
+    "greeting": "Merhaba, {{name}}",
+    "see_all": "Tümünü Gör",
+    "great": "Harika!",
+    "add": "Ekle",
+    "days": "GÜN",
+    "error_fields": "Lütfen tüm alanları doldurun."
+  },
+  "login": {
+    "title": "Giriş Yap",
+    "subtitle": "Hesabınıza erişmek için bilgilerinizi girin.",
+    "email": "E-posta",
+    "password": "Şifre",
+    "forgot_password": "Şifremi Unuttum",
+    "login_button": "Giriş Yap",
+    "no_account": "Henüz hesabınız yok mu?",
+    "register": "Kaydolun",
+    "remember_me": "Beni Unutma",
+    "error_invalid": "Girdiğiniz bilgiler sistemimizdeki kayıtlarla eşleşmiyor.",
+    "error_unconfirmed": "E-posta adresiniz henüz doğrulanmamış.",
+    "error_exists": "Bu e-posta adresi zaten kayıtlı."
+  },
+  "subscriptions": {
+    "title": "Aboneliklerim",
+    "monthly_total": "Aylık Toplam Gider",
+    "yearly_total": "Yıllık Tahmini",
+    "no_subscriptions": "Abonelik Yok",
+    "no_subscriptions_desc": "Henüz bir abonelik eklemediniz. Giderlerinizi takip etmek için hemen bir tane ekleyin.",
+    "add_first": "İlk Aboneliği Ekle",
+    "add_new": "Yeni Abonelik Ekle",
+    "name": "Abonelik Adı",
+    "amount": "Tutar",
+    "period": "Ödeme Periyodu",
+    "monthly": "Aylık",
+    "yearly": "Yıllık",
+    "delete_confirm_title": "Sil",
+    "delete_confirm_desc": "Bu aboneliği silmek istediğinize emin misiniz?",
+    "success_added": "Abonelik eklendi.",
+    "error_failed": "Ekleme başarısız.",
+    "active_count": "{{count}} Aktif Abonelik"
+  },
+  "returns": {
+    "urgent_title": "Kritik İadeler",
+    "no_urgent": "Şu an acil bir iade bulunmuyor.",
+    "title": "İadelerim",
+    "success_added": "Ürün takibe alındı.",
+    "no_tracking_title": "İade Takibi Yok",
+    "no_tracking_desc": "Aldığınız ürünlerin iade sürelerini kaçırmamak için hemen bir takip başlatın.",
+    "add_first": "İlk İadeyi Ekle",
+    "expired": "SÜRE DOLDU",
+    "returned_btn": "İade Edildi",
+    "add_new": "Yeni İade Takibi Ekle",
+    "product_name": "Ürün Adı",
+    "product_name_placeholder": "Örn: Siyah Kazak",
+    "store_name": "Mağaza",
+    "store_name_placeholder": "Örn: Trendyol",
+    "window": "İade Süresi",
+    "purchase_date": "Satın Alınma Tarihi",
+    "start_tracking": "Takibi Başlat"
+  },
+  "register": {
+    "subtitle": "Hemen aramıza katıl ve yönetmeye başla.",
+    "have_account": "Zaten bir hesabınız var mı?",
+    "success": "Kayıt Başarılı!",
+    "success_desc": "Hesabınız başarıyla oluşturuldu. Şimdi giriş yapabilirsiniz."
+  },
+  "welcome": {
+    "subtitle": "Yönet, takip et, optimize et.\nYaşam operasyonların kontrol altında."
+  },
+  "qr": {
+    "permission_title": "Kamera İzni Gerekli",
+    "permission_desc": "QR kodları tarayabilmek için kamera erişimine ihtiyacımız var. Lütfen devam etmek için izin verin.",
+    "request_btn": "İzin Ver",
+    "denied_title": "Erişim Reddedildi",
+    "denied_desc": "Kamera erişimi reddedildi. Lütfen ayarlardan izin verin.",
+    "scanning": "Tarama yapılıyor..."
+  }
+}
