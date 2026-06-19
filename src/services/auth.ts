@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { useAuthStore } from '../store/useAuthStore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const signIn = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
