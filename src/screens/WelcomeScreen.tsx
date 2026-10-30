@@ -9,7 +9,7 @@ export default function WelcomeScreen({ navigation }: any) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <ImageBackground 
-        source={require('../../assets/welcome-bg.png')} 
+        source={require('../../assets/welcome-bg.jpg')} 
         style={styles.background}
         resizeMode="cover"
       >
