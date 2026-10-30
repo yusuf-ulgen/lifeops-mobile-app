@@ -22,6 +22,7 @@ expo-env.d.ts
 .metro-health-check*
 
 # debug
+*.log
 npm-debug.*
 yarn-debug.*
 yarn-error.*
@@ -40,3 +41,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# local build artifacts
+/builds/
